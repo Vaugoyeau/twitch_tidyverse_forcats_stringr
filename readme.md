@@ -1,0 +1,4 @@
+Ce dossier a été créé suite pour le direct réalisé sur Twitch le 21 mars 2023 à 14h :   https://www.twitch.tv/videos/1774056539 
+L'idée est de présenter le {tidyverse} et détailler l'utilisation de deux packages : {forcats} et {stringr}.  
+
+Pour plus d'information, [contactez moi](mailto:marie.vaugoyeau@gmail.com) ou [abonner vous à ma newesletter](https://d1154691.sibforms.com/serve/MUIEAGj4fIubg6D4qHb7BoZSxNhzkV4p2L0I7GHpNopbqPeDS1J0SpOgaTDCavroygrDTCukB0La-8s1nsQw5wCANT5UP64en1GudsGbKhGVlwbvP_bJdAJ0ECF9BOZ1swRKEnKlnWzTHpLjknJvrCXiH_xw4F_go_2kVB0dWWrkJzRoE22BXImtgVOu29gBxx2hjFkINdeW7Cae?utm_source=sendinblue&utm_campaign=1_premire_newsletter&utm_medium=email) ^^ 

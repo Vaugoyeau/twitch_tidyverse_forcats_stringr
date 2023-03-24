@@ -1,0 +1,237 @@
+---
+title: 'Le `{tidyverse}` : `{forcats}` et `{stringr}`'
+author: "Marie VAUGOYEAU"
+date: "07/02/2023"
+output:
+  pdf_document:
+    toc: yes
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, message = FALSE, warning = FALSE)
+```
+  
+# Introduction  
+## Historique  
+Le `{tidyverse}` s'appelait encore le `hadleyverse` il y a quelques année,  c'est-à-dire `l'univers de Hadley` pour [Hadley Wickham](https://hadley.nz/) son génial créateur.  
+Le but de Hadley est de rendre l'analyse données plus facile, plus rapide et surtout **plus fun** et je trouve que cela transparaît dans ses packages !  
+Le `{tidyverse}` c'est l'ensemble des packages open-source développé par Hadley et son équipe (Hadley travaille maintenant pour RStudio en plus de plusieurs universités) qui partagent la même philosophie, la même structure de données (le fameux format `tidy`) et la même syntaxe.  
+  
+## Le format `tidy`  
+Le format `tidy`repose sur la répétition des lignes des individus afin de limiter le nombre de colonnes.  
+Dans le plus stricte cas, le format `tidy` ne présente que 3 colonnes :  
+
+_ Identification de l'individu, *par exemple* : `nom_du_pays`, `num_bague_identification`,...  
+_ Variables mesurées, *par exemple* : `variable` peut prendre comme modalités `superficie`, `taille_population`, `PIB` ou `masse`, `taille`, `longueur_du_bec`...  
+_ Valeur de la mesure. **Attention**, le format `tidy` ne supporte par plusieurs type de données dans la même colonne !  
+  
+## La syntaxe `tidyverse`  
+Non détaillée ici, je vous invite à consulter le [tidyverse style guide](https://style.tidyverse.org/index.html).  
+  
+## Les packages concernés  
+_ [`ggplot2`](https://ggplot2.tidyverse.org/) : Visulisation des données  
+_ [`dplyr`](https://dplyr.tidyverse.org/) : Manipulation des données (filtrer, trier,...) à ne pas confondre avec `tidyr` qui manipule le format du jeu de données. Présenté [le 7 février sur twitch](https://www.twitch.tv/videos/1730949759).   
+_ [`tidyr`](https://tidyr.tidyverse.org/) : Modification du format du jeu de données pour en faire un jeu de donnée `tidy`. Présenté [le 7 février sur twitch](https://www.twitch.tv/videos/1730949759).    
+_ [`readr`](https://readr.tidyverse.org/) : Lecture rapide de fichiers de données format `csv` et autres. **Attention** : format `xslx` non pris en charge, il faut utiliser le package [`readxl`](https://readxl.tidyverse.org/) qui fait partie du `tidyverse` au sens large mais qui n'est pas attaché par défaut quand on fait `library(tidyverse)`   
+_ [`purrr`](https://purrr.tidyverse.org/) : Permet le remplacement d'un grand nombre de boucles *aujourd'hui*    
+_ [`tibble`](https://tibble.tidyverse.org/) : Format des données `tidy`  
+_ [`stringr`](https://stringr.tidyverse.org/) : Manipulation des chaînes de caractères. *Vu aujourd'hui*     
+_ [`forcats`](https://forcats.tidyverse.org/) : Manipulation des variables facteurs `factors`. *Vu aujourd'hui*      
+  
+```{r import_tidyverse}
+library(tidyverse)
+```
+  
+# Projecteur sur :  
+## `{forcats}`  
+Le package `{forcats}` permet de manipuler les facteurs en modifiant les modalités, en leur réordonnants...     
+Quasiment toutes les fonctions de ce package commencent par `fct_` pour montrer qu'elles manipulent directement les vecteurs (contrairement aux fonctions du `tidyverse` présentées le mois dernier qui agissent sur un jeu de données `tibble` ou non). 
+  
+Qu'est ce qu'un facteur ? C'est un vecteur avec des modalités ordonnées, c'est-à-dire que derrière les mots il y a un vecteur numérique.  
+Cette valeur numérique est accessible via la fonction `fct_anon()` qui permet aussi d'anonymiser.  
+*Exercice : Utilisation du jeu de données `{starwars}`*  
+```{r forcats}
+starwars %>% 
+  glimpse()
+
+# Qu'est-ce qu'un facteur ?
+starwars$name %>% fct_anon()
+starwars$hair_color %>% fct_anon()
+```
+  
+### Analyser les facteurs  
+```{r forcats_analyse}
+# compter les modalités
+starwars$eye_color %>% fct_count()
+starwars %>% count(eye_color)
+
+# afficher l'intégralité des modalité
+starwars$species %>%  fct_unique()
+```
+  
+### Modifier les facteurs  
+```{r forcats_modifs}
+# combiner les colonnes
+fct_cross(starwars$sex, starwars$gender, sep = "/")
+
+# en dplyr avec la fonction glue() du package {glue}
+mutate(
+  starwars,
+  sexgenre = glue::glue("{sex}/{gender}")
+)
+
+# changer les valeurs de gender -> sex
+starwars_mod <- starwars %>% 
+  mutate(
+    sexe = sex %>% as_factor(),
+    genre = fct_recode(
+      gender, 
+      male = "masculine", 
+      female = "feminine"
+    )
+  )
+
+# homogénéiser les niveaux
+fct_unify(list(starwars_mod$sexe, starwars_mod$genre))
+```
+  
+### Changer l'ordre des modalités  
+```{r forcats_ordre}
+## origine
+starwars %>% 
+  ggplot() +
+  aes(x = eye_color) +
+  geom_bar() +
+  theme_classic()
+
+## en fonction de la frequence
+starwars %>% 
+  ggplot() +
+  aes(x = fct_infreq(eye_color)) +
+  geom_bar() +
+  theme_classic()
+
+## descendant
+starwars %>% 
+  ggplot() +
+  aes(x = fct_infreq(eye_color) %>% fct_rev()) +
+  geom_bar() +
+  xlab("couleur des yeux") +
+  theme_classic()
+
+## ordre au hasard
+starwars %>% 
+  ggplot() +
+  aes(x = fct_infreq(eye_color) %>% fct_shuffle()) +
+  geom_bar() +
+  xlab("couleur des yeux") +
+  theme_classic()
+
+```
+  
+Ressources intéressantes :  
+  
+_ [le cheatsheet de `{forcats}`](https://raw.githubusercontent.com/rstudio/cheatsheets/main/factors.pdf)  
+_  [la vignette de `{forcats}`](https://forcats.tidyverse.org/articles/forcats.html)  
+  
+## `{stringr}`  
+Le package `{stringr}` permet de manipuler facilement des chaînes de caractères.  
+Comme les fonctions du package `{forcats}`, les fonctions du package `{stringr}` agit sur un vecteur, non un jeu de données et commencent majoritairement par `str_`.  
+  
+### Manipulation de base  
+*Création et manipulation de chaînes de caractères*  
+```{r stringr, error=TRUE}
+
+# texte <- c('c'est', 'ceci')
+
+```
+  
+```{r stringr_suite}
+
+texte <- c("c'est", "l'idée", "folle", "qu'une", "femme", "est", "une", "personne")
+
+# calcul longeur
+str_c(texte, collapse = " ") %>% 
+  str_length()
+
+str_length(texte)
+
+# extraire une partie
+str_c(texte, collapse = " ") %>%  
+  str_sub(start = -8L)
+str_sub(texte, start = 2, end = 5)
+
+# trier par ordre alphabétique
+str_sort(texte)
+str_rank(texte)
+
+# séparer selon un marqueur
+str_split(texte, "'", simplify = TRUE)
+texte %>% 
+  str_split("e")
+
+```
+  
+### Initiation au `regex`  
+Le `regex` est l’abréviation de `regular expression`, soit `expression régulière`.  
+L'expression régulière permet de détecter des structures particulières, des `pattern` dans du texte.  
+*Par exemple, en tant qu'être humain il est facile de savoir que `blabla@truc.much` a le format d'une adresse e-mail. L'ordinateur, lui a besoin qu'on le "guide" sur le format que l'on cherche.  
+En regex, une adresse e-mail se traduit par `[:alphanum:]+@[:alphanum:]+\\.[:alphanum:]{2,10}`.  
+  
+```{r regex_exemple, error = TRUE}
+str_detect(texte, "e")
+str_extract(texte, "[aeiou]")
+str_extract_all(texte, "[aeiou]", simplify = TRUE)
+
+# attention au `.` qui remplace n'importe quel caractère
+str_detect(texte, ".")
+str_detect(autre_texte, "\.")
+```
+```{r suite_regex_exemple}
+str_detect(texte, "\\.")
+
+autre_texte <- "Le féminisme."
+str_locate_all(autre_texte, "sm")
+
+# détection de ponctuation
+str_detect(texte, "[:punct:]")
+str_detect(autre_texte, "[:punct:]")
+
+```
+  
+### Modification du texte  
+```{r stringr_regex, error = TRUE}
+
+# à la première itération
+str_replace(texte, "une", "un")
+texte %>% 
+  str_c(collapse = " ") %>% 
+  str_replace("une", "un")
+
+# ou à chaque fois
+texte %>% 
+  str_c(collapse = " ") %>% 
+  str_replace_all("une", "un")
+
+# passer en minuscule
+autre_texte %>% 
+  str_to_lower()
+# ou en majuscule
+autre_texte %>% 
+  str_to_upper()
+# lettre capitale pour chaque première lettre de mots
+autre_texte %>% 
+  str_to_title()
+
+# passer en minuscule les noms des colonnes d'un jeu de données
+iris %>% 
+  rename_with(str_to_lower) %>% 
+  glimpse()
+
+```
+
+Ressources intéressantes :  
+  
+_ [le cheatsheet de `{stringr}`](https://github.com/rstudio/cheatsheets/blob/main/strings.pdf)  
+_  [la page de `{stringr}`](https://stringr.tidyverse.org/)   
+  
